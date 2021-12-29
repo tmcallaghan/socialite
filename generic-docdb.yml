@@ -1,0 +1,7 @@
+http:
+    port: 8080
+    adminPort: 8081
+
+mongodb:
+    default_database_uri: mongodb://<username>:<password>@<host>/socialite?replicaSet=rs0&ssl=false&maxPoolSize=2048
+
