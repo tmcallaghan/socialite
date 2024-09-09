@@ -1,42 +1,34 @@
 #! /bin/bash
 
+resultsFile="socialite-results.csv"
+rm -f $resultsFile
+
+CSVLIST="follow.csv friends_of_friends_agg.csv friends_of_friends_query.csv get_follower_count.csv get_followers.csv read_timeline.csv scroll_timeline.csv send_content.csv unfollow.csv"
+
 source config-blog-small.config
 
-rm -rf ${SOCIALITE_CSV_DIRECTORY}/*.csv
+rm -f ${SOCIALITE_CSV_DIRECTORY}/*.csv
 
 java -jar ./target/socialite-0.0.1-SNAPSHOT.jar benchmark --session_duration $SOCIALITE_SESSION_DURATION --total_users $SOCIALITE_USERS --active_users $SOCIALITE_ACTIVE_USERS --concurrency $SOCIALITE_CONCURRENCY \
   --follow_pct $SOCIALITE_FOLLOW_PCT --unfollow_pct $SOCIALITE_UNFOLLOW_PCT --read_timeline_pct $SOCIALITE_READ_TIMELINE_PCT --scroll_timeline_pct $SOCIALITE_SCROLL_TIMELINE_PCT \
   --target_rate $SOCIALITE_TARGET_RATE --duration $SOCIALITE_DURATION --send_content_pct $SOCIALITE_SEND_CONTENT_PCT --fof_agg_pct $SOCIALITE_FOF_AGG_PCT --fof_query_pct $SOCIALITE_FOF_QUERY_PCT --csv $SOCIALITE_CSV_DIRECTORY $SOCIALITE_YML
 
-echo "---------------------------------------------------------------------------------------------------------------------------"
-echo "average transactional rate"
-tail ${SOCIALITE_CSV_DIRECTORY}/*.csv -n1 -q | cut -d ',' -f 13
+echo "creating results file $resultsFile"
+for thisCsv in $CSVLIST; do
+    #echo $thisCsv
+    # create a header
+    if [ $thisCsv == "follow.csv" ]; then
+        thisLine=`head -n1 ${SOCIALITE_CSV_DIRECTORY}/${thisCsv}`
+	echo "test,${thisLine}" >> $resultsFile
+    fi
 
-echo "---------------------------------------------------------------------------------------------------------------------------"
-echo "last 1 minute transactional rate"
-tail ${SOCIALITE_CSV_DIRECTORY}/*.csv -n1 -q | cut -d ',' -f 14
+    thisLine=`tail -n5 ${SOCIALITE_CSV_DIRECTORY}/${thisCsv} | head -n1`
+    echo "${thisCsv},${thisLine}" >> $resultsFile
+done
 
-echo "---------------------------------------------------------------------------------------------------------------------------"
-echo "last 5 minute transactional rate"
-tail ${SOCIALITE_CSV_DIRECTORY}/*.csv -n1 -q | cut -d ',' -f 15
+cat $resultsFile
 
-echo "---------------------------------------------------------------------------------------------------------------------------"
-echo "p50 latency"
-tail ${SOCIALITE_CSV_DIRECTORY}/*.csv -n1 -q | cut -d ',' -f 7
-
-echo "---------------------------------------------------------------------------------------------------------------------------"
-echo "p75 latency"
-tail ${SOCIALITE_CSV_DIRECTORY}/*.csv -n1 -q | cut -d ',' -f 8
-
-echo "---------------------------------------------------------------------------------------------------------------------------"
-echo "p95 latency"
-tail ${SOCIALITE_CSV_DIRECTORY}/*.csv -n1 -q | cut -d ',' -f 9
-
-echo "---------------------------------------------------------------------------------------------------------------------------"
-echo "p99 latency"
-tail ${SOCIALITE_CSV_DIRECTORY}/*.csv -n1 -q | cut -d ',' -f 11
-
-echo $SOCIALITE_YML
+#echo $SOCIALITE_YML
 
 # --target_rate
 

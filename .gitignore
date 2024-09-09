@@ -1,4 +1,5 @@
 *.iml
+*.csv
 target
 .idea
 .classpath
